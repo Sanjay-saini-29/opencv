@@ -149,27 +149,23 @@ def download_source():
     """
     try:
         import subprocess
-        import glob
         
-        # Run the zip creation script
-        result = subprocess.run(['python3', 'create_zip.py'], 
+        # Run the complete package creation script
+        result = subprocess.run(['python3', 'create_complete_package.py'], 
                               capture_output=True, text=True, cwd='.')
         
         if result.returncode != 0:
-            return jsonify({'error': 'Failed to create zip file'}), 500
+            return jsonify({'error': 'Failed to create complete package'}), 500
         
-        # Find the most recent zip file
-        zip_files = glob.glob('stress_strain_analyzer_*.zip')
-        if not zip_files:
-            return jsonify({'error': 'No zip file found'}), 404
-        
-        # Get the most recent zip file
-        latest_zip = max(zip_files, key=os.path.getctime)
+        # Check if the complete package exists
+        package_file = 'stress_strain_analyzer_complete.zip'
+        if not os.path.exists(package_file):
+            return jsonify({'error': 'Package file not found'}), 404
         
         return send_file(
-            latest_zip,
+            package_file,
             as_attachment=True,
-            download_name=f'stress_strain_analyzer_complete.zip',
+            download_name='stress_strain_analyzer_complete.zip',
             mimetype='application/zip'
         )
         

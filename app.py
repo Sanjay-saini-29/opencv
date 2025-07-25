@@ -141,6 +141,41 @@ def download_file(file_type, unique_id):
     except Exception as e:
         return jsonify({'error': f'Download failed: {str(e)}'}), 500
 
+@app.route('/download-source')
+def download_source():
+    """
+    Route to download the complete source code as a zip file.
+    This allows users to get the entire application for deployment elsewhere.
+    """
+    try:
+        import subprocess
+        import glob
+        
+        # Run the zip creation script
+        result = subprocess.run(['python3', 'create_zip.py'], 
+                              capture_output=True, text=True, cwd='.')
+        
+        if result.returncode != 0:
+            return jsonify({'error': 'Failed to create zip file'}), 500
+        
+        # Find the most recent zip file
+        zip_files = glob.glob('stress_strain_analyzer_*.zip')
+        if not zip_files:
+            return jsonify({'error': 'No zip file found'}), 404
+        
+        # Get the most recent zip file
+        latest_zip = max(zip_files, key=os.path.getctime)
+        
+        return send_file(
+            latest_zip,
+            as_attachment=True,
+            download_name=f'stress_strain_analyzer_complete.zip',
+            mimetype='application/zip'
+        )
+        
+    except Exception as e:
+        return jsonify({'error': f'Failed to create download: {str(e)}'}), 500
+
 @app.route('/status')
 def status():
     """
